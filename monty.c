@@ -1,29 +1,5 @@
 #include "monty.h"
 
-void error_usage(void);
-void error_open(char *file_name);
-void error_unknown(char *opcode, unsigned int line_number);
-void free_errors(stack_t *stack, char *buffer, FILE *fd);
-void push_op(stack_t **stack, unsigned int line_number, char *num);
-void free_stack(stack_t *stack);
-int select_op(char *opcode, stack_t **stack, unsigned int line_number);
-void pall_op(stack_t **stack, unsigned int line_number);
-void pint_op(stack_t **stack, unsigned int line_number);
-void pop_op(stack_t **stack, unsigned int line_number);
-void swap_op(stack_t **stack, unsigned int line_number);
-void add_op(stack_t **stack, unsigned int line_number);
-void sub_op(stack_t **stack, unsigned int line_number);
-void mul_op(stack_t **stack, unsigned int line_number);
-void id_status(stack_t *stack, char *buffer, FILE *fd, unsigned int l_number);
-void error_pint(unsigned int line_number);
-void error_pop(unsigned int line_number);
-void error_swap(unsigned int line_number);
-void error_add(unsigned int line_number);
-void error_sub(unsigned int line_number);
-void error_mul(unsigned int line_number);
-
-
-
 /**
  * main - Main functions of Monty's Interpreter
  * @argc: Argument's counter
