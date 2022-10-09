@@ -1,64 +1,125 @@
 #include "monty.h"
 
+/* Initialise Global variables */
+global_t global = {
+	NULL, NULL, STACK, 0, NULL
+};
+
 /**
- * main - Main functions of Monty's Interpreter
- * @argc: Argument's counter
- * @argv: Arguments to main
- * Return: 0 is success
+ * main - entry point
+ * @argc: argument count
+ * @argv: arguments
+ * Return: 0 success
  */
-int err_status = 0;
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-	FILE *fd;
-	stack_t *stack = NULL;
-	char *buffer = NULL, *opcode = NULL, *tokens = NULL;
-	size_t len_buff = 0;
-	ssize_t bytes_read = 0;
-	unsigned int line_number = 0;
-	int select = 0;
+	char *content;
+	char **lines;
 
 	if (argc != 2)
 	{
-		fprintf(stderr, "USAGE: monty file\n");
+		dprintf(2, "USAGE: monty file\n");
 		exit(EXIT_FAILURE);
 	}
-	fd = fopen(argv[1], "r");
-	if (fd == NULL)
+	
+	content = read_file(argv[1]);
+	lines = strtow(content, "\n");
+	free(content);
+
+	if (!lines)
 	{
-		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
+		dprintf(2, "Error: malloc failed\n");
 		exit(EXIT_FAILURE);
 	}
 
-	while (bytes_read != -1)
-	{
-		bytes_read = getline(&buffer, &len_buff, fd);
-		if (bytes_read == -1)
-			break;
-		line_number++;
-		opcode = strtok(buffer, DELIM);
-
-		if (opcode != NULL)
-		{
-			if (strcmp(opcode, "push") == 0)
-			{
-				tokens = strtok(NULL, DELIM);
-				if (tokens == NULL)
-				{
-					error_unknown(opcode, line_number);
-					free_errors(stack, buffer, fd);
-				}
-				else
-					push_op(&stack, line_number, tokens);
-			}
-			else
-			{
-				select = select_op(opcode, &stack, line_number);
-				id_status(stack, buffer, fd, line_number);
-				if (select == -1)
-					error_unknown(opcode, line_number), free_errors(stack, buffer, fd);
-			}
-		}
-	}
+	parse_instructions(lines);
+	free_tokenized(lines);
+	clear_memory();
+	if (global.quit == EXIT_FAILURE)
+		exit(EXIT_FAILURE);
 
 	return (0);
+}
+
+/**
+ * parse_instructions - parse the instructions
+ * Description:
+ * Uses the line in the moty file
+ * and executes the instructions
+ * @lines: lines read from the file
+ */
+
+void parse_instructions(char **lines)
+{
+	char **args;
+	instruction_t cmd;
+	unsigned int line;
+
+	for (line = 0; lines[line]; line++)
+	{
+		args = strtow(lines[line], DELIM);
+		if (!args || !args[0])
+			continue;
+		if (simple_opcodes(args))
+			continue;
+		if (args[0][0] == '#')
+		{
+			free_tokenized(args);
+			continue;
+		}
+		cmd = _get_handler(args[0]);
+		if (!cmd.f)
+		{
+			/* handle invalid command */
+			dprintf(2, "L%u: unknown instruction %s\n", line + 1, args[0]);
+			free_tokenized(args);
+			global.quit = EXIT_FAILURE;
+			break;
+		}
+		global.arg = args[1];
+		cmd.f(&global.head, line + 1);
+		free_tokenized(args);
+		if (global.quit == EXIT_FAILURE)
+			break;
+	}
+
+}
+
+/**
+ * simple_opcodes - handle simple opcodes
+ * @args: the args
+ * Return: 1 if found 0 otherwise
+ */
+int simple_opcodes(char **args)
+{
+	char *opcode = args[0];
+	int result = 1;
+
+	if (strcmp(opcode, "queue") == 0)
+		global.mode = QUEUE;
+	else if (strcmp(opcode, "stack") == 0)
+		global.mode = STACK;
+	else
+		result = 0;
+	if (result)
+		free_tokenized(args);
+	return (result);
+}
+
+/**
+ * process_args - chexk for validity of arg
+ * @args: arguments array
+ */
+void process_args(char **args)
+{
+	int count = arrlen(args);
+
+	if (!count)
+		global.arg = NULL;
+	else if (count == 1)
+		global.arg = args[0];
+	else
+	{
+
+	}
 }
