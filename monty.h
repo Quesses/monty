@@ -8,7 +8,7 @@
 
 #define STACK 0
 #define QUEUE 1
-#define DELIM " \t"
+#define DELIM " \t$"
 
 /**
  * struct stack_s - doubly linked list representation of a stack (or queue)
